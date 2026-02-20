@@ -3,55 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionGuide AI | Dashboard</title>
+    <title>VisionGuide AI</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="mesh-gradient"></div>
-    <div class="overlay"></div>
+    <div class="glass-card">
+        <h1>Vision<span>Guide</span></h1>
+        <div class="status-box">
+            <span class="pulse"></span>
+            <p id="status">Ready to Start</p>
+        </div>
+        
+        <div class="counter-box">
+            <h2 id="step-count">0</h2>
+            <p>ESTIMATED STEPS</p>
+        </div>
 
-    <div class="app-wrapper">
-        <header class="main-header">
-            <h1 aria-label="Vision Guide AI">Vision<span>Guide</span> AI</h1>
-            <div class="ai-status">
-                <span class="pulse-ring"></span>
-                <p id="status-text">System Standby</p>
+        <div class="controls">
+            <button class="btn" onclick="startSystem()">INITIALIZE AI</button>
+            <div class="voice-btns">
+                <button class="btn-sm" onclick="setVoice('male')">MALE</button>
+                <button class="btn-sm" onclick="setVoice('female')">FEMALE</button>
             </div>
-        </header>
-
-        <section class="tile-grid">
-            <button onclick="initApp()" class="glass-card main-tile float-1" aria-label="Setup Device">
-                <div class="icon">📡</div>
-                <h2>Initialize</h2>
-                <p>Sync Bluetooth Camera</p>
-            </button>
-
-            <div class="voice-selection">
-                <button onclick="setVoice('male')" class="glass-card voice-tile float-2">
-                    <div class="icon">👤</div>
-                    <h3>Male AI</h3>
-                </button>
-                <button onclick="setVoice('female')" class="glass-card voice-tile float-3">
-                    <div class="icon">👩</div>
-                    <h3>Female AI</h3>
-                </button>
-            </div>
-
-            <div class="glass-card output-tile float-1">
-                <div class="step-counter">
-                    <span id="step-count">0</span>
-                    <label>Steps to Obstacle</label>
-                </div>
-                <div class="visualizer">
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                </div>
-            </div>
-        </section>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <video id="v" autoplay playsinline style="display:none"></video>
+    <canvas id="c" style="display:none"></canvas>
+
+    <script>
+        let selectedVoice = "David";
+        const v = document.getElementById('v');
+        const c = document.getElementById('c');
+
+        async function startSystem() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            v.srcObject = stream;
+            document.getElementById('status').innerText = "AI Monitoring Active";
+            speak("System initialized. Monitoring path.");
+            setInterval(captureAndAnalyze, 8000);
+        }
+
+        async function captureAndAnalyze() {
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v, 0, 0);
+            const img = c.toDataURL('image/jpeg').split(',')[1];
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                body: JSON.stringify({ image: img })
+            });
+            const data = await res.json();
+            const text = data.choices[0].message.content;
+            
+            speak(text);
+            const steps = text.match(/\d+/);
+            if (steps) document.getElementById('step-count').innerText = steps[0];
+        }
+
+        function setVoice(g) {
+            selectedVoice = g === 'male' ? 'David' : 'Zira';
+            speak(g + " voice selected");
+        }
+
+        function speak(t) {
+            const ut = new SpeechSynthesisUtterance(t);
+            const vs = window.speechSynthesis.getVoices();
+            ut.voice = vs.find(voice => voice.name.includes(selectedVoice));
+            window.speechSynthesis.speak(ut);
+        }
+    </script>
 </body>
 </html>
