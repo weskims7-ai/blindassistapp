@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionGuide AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-gradient"></div>
+    
+    <main class="glass-container">
+        <h1 aria-label="Vision Guide AI">VisionGuide AI</h1>
+        
+        <div class="tile-grid">
+            <button onclick="initApp()" class="tile float-1" id="setup-btn">
+                <h2>Initialize</h2>
+                <p>Bluetooth & Location</p>
+            </button>
+
+            <button onclick="setVoice('male')" class="tile float-2">
+                <h2>Male AI</h2>
+                <p>Select Voice</p>
+            </button>
+
+            <button onclick="setVoice('female')" class="tile float-3">
+                <h2>Female AI</h2>
+                <p>Select Voice</p>
+            </button>
+            
+            <div class="tile status-tile float-1" id="status">
+                <h2>Status</h2>
+                <p id="status-text">Waiting for Setup...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
